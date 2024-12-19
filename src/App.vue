@@ -1,85 +1,133 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
+import { ref, onMounted } from 'vue';
+import { fetchArticles, Article } from './components/GetApi';
+
+const articles = ref<Article[]>([]);
+const isLoading = ref(true);
+const error = ref<string | null>(null);
+
+// Fonction pour charger les articles
+onMounted(async () => {
+  try {
+    const response = await fetchArticles();
+    articles.value = response.articles;
+  } catch (err) {
+    error.value = 'Impossible de charger les articles.';
+    console.error(err);
+  } finally {
+    isLoading.value = false;
+  }
+});
 </script>
 
 <template>
   <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
-
     <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
-      </nav>
+      <p class="title">Chercher un article</p>
+      <div class="search-bar">
+        <input type="text" placeholder="Rechercher un article..." />
+        <button>Rechercher</button>
+      </div>
     </div>
   </header>
 
-  <RouterView />
+  <main>
+    <h1>Liste des articles</h1>
+    <div v-if="isLoading" class="loading">Chargement...</div>
+    <div v-else-if="error" class="error">{{ error }}</div>
+    <ul v-else class="articles-list">
+      <li v-for="article in articles" :key="article.id" class="article-item">
+        <h2>{{ article.title }}</h2>
+        <p>{{ article.description }}</p>
+        <p><strong>Créé le :</strong> {{ new Date(article.createdAt).toLocaleDateString() }}</p>
+        <p><strong>Auteur :</strong> {{ article.author.image ? article.author.image : 'Anonyme' }}</p>
+      </li>
+    </ul>
+  </main>
 </template>
 
 <style scoped>
+/* Header styles */
 header {
-  line-height: 1.5;
-  max-height: 100vh;
-}
-
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
-
-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 100%;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 2rem;
+  background-color: #2c2c2c;
+  padding: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
 }
 
-nav a.router-link-exact-active {
-  color: var(--color-text);
+.wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
+.title {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #fff;
 }
 
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-nav a:first-of-type {
-  border: 0;
+.search-bar input {
+  padding: 0.5rem;
+  border: 1px solid #444;
+  border-radius: 4px;
+  font-size: 1rem;
 }
 
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
+.search-bar button {
+  padding: 0.5rem 1rem;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+}
 
-  .logo {
-    margin: 0 2rem 0 0;
-  }
+.search-bar button:hover {
+  background-color: #45a049;
+}
 
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
+/* Main content */
+main {
+  margin-top: 100px;
+  padding: 1rem;
+}
 
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
+.articles-list {
+  list-style: none;
+  padding: 0;
+}
 
-    padding: 1rem 0;
-    margin-top: 1rem;
-  }
+.article-item {
+  background: #1e1e1e;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.article-item h2 {
+  margin: 0 0 0.5rem;
+}
+
+.loading {
+  color: #fff;
+  font-size: 1.2rem;
+}
+
+.error {
+  color: red;
+  font-size: 1.2rem;
 }
 </style>
