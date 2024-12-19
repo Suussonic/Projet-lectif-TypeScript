@@ -23,11 +23,6 @@ const searchQuery = ref('');
       </div>
     </div>
   </header>
-
-  <!-- Contenu principal -->
-  <main>
-    <RouterView />
-  </main>
 </template>
 
 <style scoped>
